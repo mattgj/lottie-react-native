@@ -93,6 +93,10 @@
   }
 }
 
+- (LOTAnimationView*) getAnimationView {
+    return _animationView;
+}
+
 # pragma mark Private
 
 - (void)replaceAnimationView:(LOTAnimationView *)next {

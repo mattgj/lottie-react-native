@@ -90,4 +90,33 @@ RCT_EXPORT_METHOD(reset:(nonnull NSNumber *)reactTag)
   }];
 }
 
+RCT_EXPORT_METHOD(addValueCallback:(nonnull NSNumber *)reactTag
+                  keyPath:(nonnull NSArray *)keyPath
+                  property:(nonnull NSString *) property
+                  value:(nonnull NSNumber *) value)
+{
+    
+//    LOTKeypath *lotKeyPath = [LOTKeypath keypathWithString:[keyPath componentsJoinedByString:@"."]];
+    LOTKeypath *lotKeyPath = [LOTKeypath keypathWithString:@"Combined Shape.Combined Shape.Transform.Opacity"];
+
+    [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
+        id view = viewRegistry[reactTag];
+        if (![view isKindOfClass:[LRNContainerView class]]) {
+            RCTLogError(@"Invalid view returned from registry, expecting LottieContainerView, got: %@", view);
+        } else {
+            LRNContainerView *lottieView = (LRNContainerView *)view;
+            UIColor *color = [UIColor colorWithRed:1.0
+                                            green:1.0
+                                             blue:1.0
+                                            alpha:0.0];
+            
+            LOTNumberValueCallback *colorValueCallback = [LOTNumberValueCallback withFloatValue: 0];
+//            LOTColorBlockCallback *colorBlockCallback = [LOTColorBlockCallback startColor: [UIColor redColor] endColor: [UIColor redColor] interpolatedColor: [UIColor redColor]];
+
+            [[lottieView getAnimationView] setValueDelegate: colorValueCallback
+                                     forKeypath: lotKeyPath];
+        }
+    }];
+}
+
 @end

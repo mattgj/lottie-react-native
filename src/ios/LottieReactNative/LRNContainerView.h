@@ -30,5 +30,6 @@
 - (void)playFromFrame:(NSNumber *)startFrame
               toFrame:(NSNumber *)endFrame;
 - (void)reset;
+- (LOTAnimationView*)getAnimationView;
 
 @end
