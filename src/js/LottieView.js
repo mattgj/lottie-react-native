@@ -20,8 +20,9 @@ const AnimatedNativeLottieView = Animated.createAnimatedComponent(NativeLottieVi
 const LottieViewManager = SafeModule.module({
   moduleName: 'LottieAnimationView',
   mock: {
-    play: () => {},
-    reset: () => {},
+    play: () => { },
+    reset: () => { },
+    addValueCallback: () => { }
   },
 });
 
@@ -31,8 +32,8 @@ const ViewStyleExceptBorderPropType = (props, propName, componentName, ...rest) 
   if (usesBorder) {
     return Error(
       `${componentName} does not allow any border related style properties to be specified. ` +
-        "Border styles for this component will behave differently across platforms. If you'd " +
-        'like to render a border around this component, wrap it with a View.',
+      "Border styles for this component will behave differently across platforms. If you'd " +
+      'like to render a border around this component, wrap it with a View.',
     );
   }
   return ViewPropTypes.style(props, propName, componentName, ...rest);
@@ -97,6 +98,10 @@ class LottieView extends React.Component {
     UIManager.updateView(this.getHandle(), this.viewConfig.uiViewClassName, {
       progress: props.progress,
     });
+  }
+
+  addValueCallback(keyPath, property, value) {
+    this.runCommand('addValueCallback', [keyPath, property, value]);
   }
 
   play(startFrame = -1, endFrame = -1) {
