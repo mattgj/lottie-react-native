@@ -8,6 +8,8 @@ import android.view.View.OnAttachStateChangeListener;
 import android.view.View;
 
 import com.airbnb.lottie.LottieAnimationView;
+import com.airbnb.lottie.LottieProperty;
+import com.airbnb.lottie.value.LottieValueCallback;
 import com.airbnb.lottie.model.KeyPath;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.common.MapBuilder;
@@ -15,6 +17,7 @@ import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.annotations.ReactProp;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -54,62 +57,94 @@ class LottieAnimationViewManager extends SimpleViewManager<LottieAnimationView> 
   @Override
   public void receiveCommand(final LottieAnimationView view, int commandId, final ReadableArray args) {
     switch (commandId) {
-    case COMMAND_PLAY: {
-      new Handler(Looper.getMainLooper()).post(new Runnable() {
-        @Override
-        public void run() {
-          int startFrame = args.getInt(0);
-          int endFrame = args.getInt(1);
-          if (startFrame != -1 && endFrame != -1) {
-            view.setMinAndMaxFrame(args.getInt(0), args.getInt(1));
+      case COMMAND_PLAY: {
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+          @Override
+          public void run() {
+            int startFrame = args.getInt(0);
+            int endFrame = args.getInt(1);
+            if (startFrame != -1 && endFrame != -1) {
+              view.setMinAndMaxFrame(args.getInt(0), args.getInt(1));
+            }
+            if (ViewCompat.isAttachedToWindow(view)) {
+              view.setProgress(0f);
+              view.playAnimation();
+            } else {
+              view.addOnAttachStateChangeListener(new OnAttachStateChangeListener() {
+                @Override
+                public void onViewAttachedToWindow(View v) {
+                  LottieAnimationView view = (LottieAnimationView) v;
+                  view.setProgress(0f);
+                  view.playAnimation();
+                  view.removeOnAttachStateChangeListener(this);
+                }
+
+                @Override
+                public void onViewDetachedFromWindow(View v) {
+                  view.removeOnAttachStateChangeListener(this);
+                }
+              });
+            }
           }
-          if (ViewCompat.isAttachedToWindow(view)) {
-            view.setProgress(0f);
-            view.playAnimation();
-          } else {
-            view.addOnAttachStateChangeListener(new OnAttachStateChangeListener() {
-              @Override
-              public void onViewAttachedToWindow(View v) {
-                LottieAnimationView view = (LottieAnimationView) v;
-                view.setProgress(0f);
-                view.playAnimation();
-                view.removeOnAttachStateChangeListener(this);
+        });
+      }
+      break;
+      case COMMAND_RESET: {
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+          @Override
+          public void run() {
+            if (ViewCompat.isAttachedToWindow(view)) {
+              view.cancelAnimation();
+              view.setProgress(0f);
+            }
+          }
+        });
+      }
+      break;
+      case COMMAND_ADD_VALUE_CALLBACK: {
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+          @Override
+          public void run() {
+            if (ViewCompat.isAttachedToWindow(view)) {
+
+              ArrayList keypath = args.getArray(0).toArrayList();
+              ArrayList<String> keypathStr = new ArrayList<>();
+
+
+              int index = 0;
+              int keyCount = keypath.size();
+
+              for (Object kpValue : keypath) {
+                String strVal = String.valueOf(kpValue);
+
+                // iOS requires Transform in the keypath when changing transform values.
+                // Android doesn't require this and it should be removed.
+                if (index != keyCount - 1 || !strVal.equals("Transform")) {
+                  keypathStr.add(strVal);
+                  index++;
+                }
               }
 
-              @Override
-              public void onViewDetachedFromWindow(View v) {
-                view.removeOnAttachStateChangeListener(this);
+              String propertyArg = args.getString(1).toLowerCase();
+              double value = args.getDouble(2);
+              int property = 0;
+
+              if (propertyArg.equals("opacity")  || propertyArg.equals("transform_opacity")) {
+                property = LottieProperty.TRANSFORM_OPACITY;
+                value *= 100;
+
+              } else if(propertyArg.equals("fill_opacity")) {
+                property = LottieProperty.OPACITY;
+                value *= 100;
               }
-            });
-          }
-        }
-      });
-    }
-      break;
-    case COMMAND_RESET: {
-      new Handler(Looper.getMainLooper()).post(new Runnable() {
-        @Override
-        public void run() {
-          if (ViewCompat.isAttachedToWindow(view)) {
-            view.cancelAnimation();
-            view.setProgress(0f);
-          }
-        }
-      });
-    }
-      break;
-    case COMMAND_ADD_VALUE_CALLBACK: {
-      new Handler(Looper.getMainLooper()).post(new Runnable() {
-        @Override
-        public void run() {
-          if (ViewCompat.isAttachedToWindow(view)) {
 
-            view.addValueCallback(new KeyPath(args.getArray()));
+              view.addValueCallback(new KeyPath(keypathStr.toArray(new String[keypathStr.size()])), property,
+                      new LottieValueCallback<>((int)value));
 
+            }
           }
-        }
-      });
-    }
+        });
+      }
       break;
     }
   }
@@ -124,29 +159,29 @@ class LottieAnimationViewManager extends SimpleViewManager<LottieAnimationView> 
     getOrCreatePropertyManager(view).setAnimationJson(json);
   }
 
-  /**
-   *
-   * @param view
-   * @param name
-   */
-  @ReactProp(name = "cacheStrategy")
-  public void setCacheStrategy(LottieAnimationView view, String name) {
-    if (name != null) {
-      LottieAnimationView.CacheStrategy strategy = LottieAnimationView.DEFAULT_CACHE_STRATEGY;
-      switch (name) {
-      case "none":
-        strategy = LottieAnimationView.CacheStrategy.None;
-        break;
-      case "weak":
-        strategy = LottieAnimationView.CacheStrategy.Weak;
-        break;
-      case "strong":
-        strategy = LottieAnimationView.CacheStrategy.Strong;
-        break;
-      }
-      getOrCreatePropertyManager(view).setCacheStrategy(strategy);
-    }
-  }
+//  /**
+//   *
+//   * @param view
+//   * @param name
+//   */
+//  @ReactProp(name = "cacheStrategy")
+//  public void setCacheStrategy(LottieAnimationView view, String name) {
+//    if (name != null) {
+//      LottieAnimationView.CacheStrategy strategy = LottieAnimationView.DEFAULT_CACHE_STRATEGY;
+//      switch (name) {
+//        case "none":
+//          strategy = LottieAnimationView.CacheStrategy.None;
+//          break;
+//        case "weak":
+//          strategy = LottieAnimationView.CacheStrategy.Weak;
+//          break;
+//        case "strong":
+//          strategy = LottieAnimationView.CacheStrategy.Strong;
+//          break;
+//      }
+//      getOrCreatePropertyManager(view).setCacheStrategy(strategy);
+//    }
+//  }
 
   @ReactProp(name = "resizeMode")
   public void setResizeMode(LottieAnimationView view, String resizeMode) {
