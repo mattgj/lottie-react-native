@@ -98,6 +98,11 @@ RCT_EXPORT_METHOD(addValueCallback:(nonnull NSNumber *)reactTag
                   property:(nonnull NSString *) property
                   value:(nonnull NSNumber *) value)
 {
+
+    if(!valueDelegates) {
+        valueDelegates = [[NSMutableDictionary alloc] init];
+    }
+
     NSArray *keyPathWithProp;
     
     if (property != NULL && [property length] > 0) {
