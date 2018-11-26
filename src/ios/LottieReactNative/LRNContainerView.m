@@ -19,6 +19,14 @@
 
 @implementation LRNContainerView {
   LOTAnimationView *_animationView;
+  NSDictionary *_valueDelegates;
+}
+
+- (id)init {
+  self = [super init];
+  _valueDelegates = [[NSMutableDictionary alloc] init];
+
+  return self;
 }
 
 - (void)reactSetFrame:(CGRect)frame
@@ -93,8 +101,10 @@
   }
 }
 
-- (LOTAnimationView*) getAnimationView {
-    return _animationView;
+- (void)setValueDelegate:(id<LOTValueDelegate> _Nonnull)delegate
+              forKeypath:(NSString * _Nonnull)keypath {
+  [_valueDelegates setValue:delegate forKey:keypath];
+  [_animationView setValueDelegate:delegate forKeypath:[LOTKeypath keypathWithString: keypath]];
 }
 
 # pragma mark Private

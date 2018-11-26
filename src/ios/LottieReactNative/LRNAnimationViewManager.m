@@ -112,7 +112,6 @@ RCT_EXPORT_METHOD(addValueCallback:(nonnull NSNumber *)reactTag
     }
     
     NSString *keyStr = [keyPathWithProp componentsJoinedByString:@"."];
-    LOTKeypath *lotKeyPath = [LOTKeypath keypathWithString: keyStr];
     
     [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
         id view = viewRegistry[reactTag];
@@ -120,17 +119,10 @@ RCT_EXPORT_METHOD(addValueCallback:(nonnull NSNumber *)reactTag
             RCTLogError(@"Invalid view returned from registry, expecting LottieContainerView, got: %@", view);
         } else {
             LRNContainerView *lottieView = (LRNContainerView *)view;
-            //            UIColor *color = [UIColor colorWithRed:1.0
-            //                                            green:1.0
-            //                                             blue:1.0
-            //                                            alpha:1.0];
             LOTNumberValueCallback *colorValueCallback = [LOTNumberValueCallback withFloatValue: [value floatValue]];
-            //            LOTColorBlockCallback *colorBlockCallback = [LOTColorBlockCallback startColor: [UIColor redColor] endColor: [UIColor redColor] interpolatedColor: [UIColor redColor]];
             
-            [valueDelegates setValue:colorValueCallback forKey: keyStr];
-            
-            [[lottieView getAnimationView] setValueDelegate: colorValueCallback
-                                                 forKeypath: lotKeyPath];
+            [lottieView setValueDelegate: colorValueCallback
+                                                 forKeypath: keyStr];
         }
     }];
 }

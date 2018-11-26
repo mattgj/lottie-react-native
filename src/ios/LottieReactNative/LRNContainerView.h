@@ -6,7 +6,6 @@
 //  Copyright © 2016 Airbnb. All rights reserved.
 //
 
-
 // import RCTView.h
 #if __has_include(<React/RCTView.h>)
 #import <React/RCTView.h>
@@ -20,16 +19,18 @@
 
 @interface LRNContainerView : RCTView
 
-@property (nonatomic, assign) BOOL loop;
-@property (nonatomic, assign) CGFloat speed;
-@property (nonatomic, assign) CGFloat progress;
-@property (nonatomic, strong) NSDictionary *sourceJson;
-@property (nonatomic, strong) NSString *sourceName;
+@property(nonatomic, assign) BOOL loop;
+@property(nonatomic, assign) CGFloat speed;
+@property(nonatomic, assign) CGFloat progress;
+@property(nonatomic, strong) NSDictionary *sourceJson;
+@property(nonatomic, strong) NSString *sourceName;
 
+- (id)init;
 - (void)play;
 - (void)playFromFrame:(NSNumber *)startFrame
               toFrame:(NSNumber *)endFrame;
 - (void)reset;
-- (LOTAnimationView*)getAnimationView;
+- (void)setValueDelegate:(id<LOTValueDelegate> _Nonnull)delegate
+              forKeypath:(NSString *_Nonnull)keypath;
 
 @end
